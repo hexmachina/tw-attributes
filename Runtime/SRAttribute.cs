@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-//using UnityEditor.Compilation;
 using UnityEngine;
-using Assembly = System.Reflection.Assembly;
-
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 namespace TW.Attributes
 {
 
 	[AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
 	public class SRAttribute : PropertyAttribute
 	{
-		private static Dictionary<Type, Type[]> _typeCache = new Dictionary<Type, Type[]>();
 
 		public class TypeInfo
 		{
@@ -83,37 +80,21 @@ namespace TW.Attributes
 
 		public static Type[] GetChildTypes(Type type)
 		{
-			Type[] result;
-			if (_typeCache.TryGetValue(type, out result))
-				return result;
-
-			if (type.IsInterface)
-			{
-				result = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(p => p != type && type.IsAssignableFrom(p) && type.IsAbstract == false).ToArray();
-			}
-			else
-			{
-				var assem = Assembly.GetAssembly(type);
-				result = assem.GetTypes().Where(t => t.IsSubclassOf(type) && t.IsAbstract == false).ToArray();
-				if (assem.GetName().Name != "Assembly-CSharp")
-				{
-					var main = GetAssemblyByName("Assembly-CSharp").GetTypes().Where(t => t.IsSubclassOf(type) && t.IsAbstract == false).ToArray();
+			Type[] result = new Type[] { };
 #if UNITY_EDITOR
-					UnityEditor.ArrayUtility.AddRange(ref result, main);
-#endif
+			var collection = TypeCache.GetTypesDerivedFrom(type);
+			for (int i = 0; i < collection.Count; i++)
+			{
+				var t = collection[i];
+				if (t.IsAbstract)
+				{
+					continue;
 				}
+				UnityEditor.ArrayUtility.Add(ref result, t);
+
 			}
-
-			if (result != null)
-				_typeCache[type] = result;
-
+#endif
 			return result;
-		}
-
-		static Assembly GetAssemblyByName(string name)
-		{
-			return AppDomain.CurrentDomain.GetAssemblies().
-				   SingleOrDefault(assembly => assembly.GetName().Name == name);
 		}
 
 		public static Type GetTypeByName(string typeName)
