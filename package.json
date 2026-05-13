@@ -1,0 +1,11 @@
+{
+    "name": "com.tw.attributes",
+    "version": "1.0.0",
+    "unity": "6000.0",
+    "displayName": "TW Attributes",
+    "description": "Common Unity editor attributes",
+    "author": {
+        "name": "Tom Wilhelm",
+        "url": "https://www.tom-wilhelm.com"
+    }
+}
